@@ -53,7 +53,8 @@ module Pod
         :xcodeproj_path => "templates/ios/PROJECT.xcodeproj",
         :platform => :ios,
         :remove_example_project => (keep_example == :no),
-        :prefix => prefix
+        :prefix => prefix,
+        :example => false
       }).run
 
       Pod::ProjectManipulator.new({
