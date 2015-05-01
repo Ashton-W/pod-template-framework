@@ -15,6 +15,7 @@ module Pod
       @platform = options.fetch(:platform)
       @remove_example_project = options.fetch(:remove_example_project)
       @prefix = options.fetch(:prefix)
+      @prefix ||= ''
       @example = options.fetch(:example)
     end
 
@@ -38,9 +39,9 @@ module Pod
 
     def add_podspec_metadata
       project_metadata_item = @project.root_object.main_group.children.select { |group| group.name == "Podspec Metadata" }.first
-      project_metadata_item.new_file "../" + @configurator.pod_name  + ".podspec"
-      project_metadata_item.new_file "../README.md"
-      project_metadata_item.new_file "../LICENSE"
+      project_metadata_item.new_file @configurator.pod_name  + ".podspec"
+      project_metadata_item.new_file "README.md"
+      project_metadata_item.new_file "LICENSE"
     end
 
     def remove_example_project_files
@@ -71,7 +72,7 @@ module Pod
         ["#{project}-Info.plist", "#{project}-Prefix.pch"].each do |file|
           before = project_folder + "/#{project}/" + file
           after = project_folder + "/#{project}/" + templated_string(project)
-          File.rename before, after
+          File.rename before, after if File.file? before
         end
       end
 
@@ -95,7 +96,9 @@ module Pod
         next if Dir.exists? name
         text = File.read(name)
 
-        text = templated_string text
+        for find, replace in @string_replacements
+            text = text.gsub(find, replace)
+        end
 
         File.open(name, "w") { |file| file.puts text }
       end
