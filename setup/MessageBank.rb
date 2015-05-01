@@ -40,7 +40,7 @@ module Pod
       puts "To get you started we need to ask 4 questions, this should only take a minute."
       puts ""
       
-      has_run_before = `defaults read net.Ashton-W.cocoapods.pod-template-framework HasRunbefore`.chomp == "1"
+      has_run_before = `defaults read net.Ashton-W.cocoapods.pod-template-framework HasRunbefore &2>/dev/null`.chomp == "1"
 
       puts "If this is your first time we recommend running through with the guide: "
       puts " - "  + "http://ashton-w.github.io/pod-template-framework".blue.underline
