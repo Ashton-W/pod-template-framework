@@ -28,7 +28,7 @@ module Pod
       replace_internal_project_settings
 
       @project = Xcodeproj::Project.open(@xcodeproj_path)
-      add_podspec_metadata unless @example?
+      add_podspec_metadata unless @example
       remove_example_project_files if @remove_example_project
       @project.save
 
