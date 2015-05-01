@@ -3,19 +3,21 @@ pod-template-framework
 
 Another opinionated template for creating a Pod with the following features:
 
-- Git
 - Library oriented folder structure
 - Library project generation
-- Demo project generation
-- MIT license
 - Library style unit tests (no host app)
+- Example project generation
+- MIT license
+- Git
 - CI ready
 
-A fork of [CocoaPods/pod-template](https://github.com/CocoaPods/pod-template).
+Forked from [CocoaPods/pod-template](https://github.com/CocoaPods/pod-template).
 
 ## Usage
 
-The command `pod lib create` aims to be ran along with this guide: http://guides.cocoapods.org/making/using-pod-lib-create.html so any changes of flow should be updated there also.
+    pod lib create PROJECT git@github.com:Ashton-W/pod-template-framework.git
+
+Replace `PROJECT` with your frameworks name.
 
 ## Contributing
 
