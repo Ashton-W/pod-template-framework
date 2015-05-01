@@ -126,7 +126,7 @@
 			attributes = {
 				CLASSPREFIX = "";
 				LastUpgradeCheck = 0510;
-				ORGANIZATIONNAME = PROJECT_OWNER;
+				ORGANIZATIONNAME = "PROJECT_OWNER";
 			};
 			buildConfigurationList = 6003F585195388D10070C39A /* Build configuration list for PBXProject "PROJECT-Example" */;
 			compatibilityVersion = "Xcode 3.2";

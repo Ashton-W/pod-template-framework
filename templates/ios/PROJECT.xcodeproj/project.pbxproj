@@ -187,7 +187,7 @@
 			attributes = {
 				CLASSPREFIX = CPD;
 				LastUpgradeCheck = 0510;
-				ORGANIZATIONNAME = PROJECT_OWNER;
+				ORGANIZATIONNAME = "PROJECT_OWNER";
 				TargetAttributes = {
 					460D464D1AF1BBB100E6F7A9 = {
 						CreatedOnToolsVersion = 6.3.1;
