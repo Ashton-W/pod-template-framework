@@ -40,10 +40,10 @@ module Pod
       puts "To get you started we need to ask 4 questions, this should only take a minute."
       puts ""
       
-      has_run_before = `defaults read org.cocoapods.pod-template HasRunbefore`.chomp == "1"
+      has_run_before = `defaults read net.Ashton-W.cocoapods.pod-template-framework HasRunbefore`.chomp == "1"
 
       puts "If this is your first time we recommend running through with the guide: "
-      puts " - "  + "http://guides.cocoapods.org/making/using-pod-lib-create.html".blue.underline
+      puts " - "  + "http://ashton-w.github.io/pod-template-framework".blue.underline
 
       if ENV["TERM_PROGRAM"] == "iTerm.app"
         puts " ( hold cmd and click links to open in a browser. )".magenta
@@ -53,7 +53,7 @@ module Pod
       
       unless has_run_before
         puts "\n Press return to continue."
-        `defaults write org.cocoapods.pod-template HasRunbefore -bool true`
+        `defaults write net.Ashton-W.cocoapods.pod-template-framework HasRunbefore -bool true`
       end
       
 
@@ -66,7 +66,7 @@ module Pod
       puts " Ace! you're ready to go!"
       puts " We will start you off by opening your project in Xcode"
       pod_name = @configurator.pod_name
-      run_command "open 'Example/#{pod_name}.xcworkspace'", "open '#{pod_name}/Example/#{pod_name}.xcworkspace'"
+      run_command "open '#{pod_name}.xcworkspace'", "open '#{pod_name}/#{pod_name}.xcworkspace'"
     end
 
 

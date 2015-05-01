@@ -13,7 +13,7 @@ module Pod
 
     def perform
 
-      keep_demo = configurator.ask_with_answers("Would you like to include a demo application with your library", ["Yes", "No"]).to_sym
+      keep_example = configurator.ask_with_answers("Would you like to include an example application with your library", ["Yes", "No"]).to_sym
 
       framework = configurator.ask_with_answers("Which testing frameworks will you use", ["Specta", "Kiwi", "None"]).to_sym
       case framework
@@ -36,23 +36,6 @@ module Pod
           configurator.set_test_framework("xctest")
       end
 
-      snapshots = configurator.ask_with_answers("Would you like to do view based testing", ["Yes", "No"]).to_sym
-      case snapshots
-        when :yes
-          configurator.add_pod_to_podfile "FBSnapshotTestCase"
-          configurator.add_line_to_pch "#import <FBSnapshotTestCase/FBSnapshotTestCase.h>"
-
-          if keep_demo == :no
-              puts " Putting demo application back in, you cannot do view tests without a host application."
-              keep_demo = :yes
-          end
-
-          if framework == :specta
-              configurator.add_pod_to_podfile "Expecta+Snapshots"
-              configurator.add_line_to_pch "#import <Expecta+Snapshots/EXPMatchers+FBSnapshotTest.h>"
-          end
-      end
-
       prefix = nil
 
       loop do
@@ -67,10 +50,19 @@ module Pod
 
       Pod::ProjectManipulator.new({
         :configurator => @configurator,
-        :xcodeproj_path => "templates/ios/Example/PROJECT.xcodeproj",
+        :xcodeproj_path => "templates/ios/PROJECT.xcodeproj",
         :platform => :ios,
-        :remove_demo_project => (keep_demo == :no),
+        :remove_example_project => (keep_example == :no),
         :prefix => prefix
+      }).run
+
+      Pod::ProjectManipulator.new({
+        :configurator => @configurator,
+        :xcodeproj_path => "templates/ios/Example/PROJECT-Example.xcodeproj",
+        :platform => :ios,
+        :remove_example_project => (keep_example == :no),
+        :prefix => nil,
+        :example => true
       }).run
 
       `mv ./templates/ios/* ./`

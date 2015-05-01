@@ -88,6 +88,8 @@ module Pod
       puts "\nRunning " + "pod install".magenta + " on your new library."
       puts ""
 
+      system "pod install"
+
       Dir.chdir("Example") do
         system "pod install"
       end
@@ -100,7 +102,7 @@ module Pod
     end
 
     def replace_variables_in_files
-      file_names = ['POD_LICENSE', 'POD_README.md', 'NAME.podspec', '.travis.yml', podfile_path]
+      file_names = ['LICENSE', 'README.md', 'NAME.podspec', '.travis.yml', podfile_path, example_podfile_path]
       file_names.each do |file_name|
         text = File.read(file_name)
         text.gsub!("${POD_NAME}", @pod_name)
@@ -131,7 +133,7 @@ module Pod
     end
 
     def customise_prefix
-      prefix_path = "Example/Tests/Tests-Prefix.pch"
+      prefix_path = "Tests/Tests-Prefix.pch"
       pch = File.read prefix_path
       pch.gsub!("${INCLUDED_PREFIXES}", @prefixes.join("\n  ") )
       File.open(prefix_path, "w") { |file| file.puts pch }
@@ -139,15 +141,13 @@ module Pod
 
     def set_test_framework(test_type)
       content_path = "setup/test_examples/" + test_type + ".m"
-      tests_path = "templates/ios/Example/Tests/Tests.m"
+      tests_path = "templates/ios/Tests/Tests.m"
       tests = File.read tests_path
       tests.gsub!("${TEST_EXAMPLE}", File.read(content_path) )
       File.open(tests_path, "w") { |file| file.puts tests }
     end
 
     def rename_template_files
-      `mv POD_README.md README.md`
-      `mv POD_LICENSE LICENSE`
       `mv NAME.podspec #{pod_name}.podspec`
     end
 
@@ -181,6 +181,10 @@ module Pod
     end
 
     def podfile_path
+      'Podfile'
+    end
+
+    def example_podfile_path
       'Example/Podfile'
     end
 

@@ -3,7 +3,7 @@ require 'xcodeproj'
 module Pod
 
   class ProjectManipulator
-    attr_reader :configurator, :xcodeproj_path, :platform, :remove_demo_target, :string_replacements, :prefix
+    attr_reader :configurator, :xcodeproj_path, :platform, :remove_example_project, :string_replacements, :prefix, :example
 
     def self.perform(options)
       new(options).perform
@@ -13,8 +13,9 @@ module Pod
       @xcodeproj_path = options.fetch(:xcodeproj_path)
       @configurator = options.fetch(:configurator)
       @platform = options.fetch(:platform)
-      @remove_demo_target = options.fetch(:remove_demo_project)
+      @remove_example_project = options.fetch(:remove_example_project)
       @prefix = options.fetch(:prefix)
+      @example = options.fetch(:example)
     end
 
     def run
@@ -27,8 +28,8 @@ module Pod
       replace_internal_project_settings
 
       @project = Xcodeproj::Project.open(@xcodeproj_path)
-      add_podspec_metadata
-      remove_demo_project if @remove_demo_target
+      add_podspec_metadata unless @example?
+      remove_example_project_files if @remove_example_project
       @project.save
 
       rename_files
@@ -42,62 +43,34 @@ module Pod
       project_metadata_item.new_file "../LICENSE"
     end
 
-    def remove_demo_project
-      app_project = @project.targets.select { |target| target.product_type == "com.apple.product-type.application" }.first
-      test_target = @project.targets.select { |target| target.product_type == "com.apple.product-type.bundle.unit-test" }.first
-      test_target.name = @configurator.pod_name
-
-      # Remove the implicit dependency on the app
-      test_dependency = test_target.dependencies.first
-      test_dependency.remove_from_project
-      app_project.remove_from_project
-
-      # Remove the build target on the unit tests
-      test_target.build_configuration_list.build_configurations.each do |build_config|
-        build_config.build_settings.delete "BUNDLE_LOADER"
-      end
-
-      # Remove the references in xcode
-      project_app_group = @project.root_object.main_group.children.select { |group| group.display_name == @configurator.pod_name }.first
-      project_app_group.remove_from_project
-
-      # Remove the actual folder + files
-      `rm -rf templates/ios/Example/PROJECT`
-
-      # Remove the section in the Podfile for the lib by removing top 3 lines after the source
-      podfile_path = project_folder + "/Podfile"
-      podfile_lines = File.read(podfile_path).lines
-      3.times do  podfile_lines.delete_at 2 end
-      podfile_text = podfile_lines.join
-      podfile_text = podfile_text.gsub("Tests", @configurator.pod_name)
-      File.open(podfile_path, "w") { |file| file.puts podfile_text }
+    def remove_example_project_files
+      `rm -rf templates/ios/Example/`
     end
 
     def project_folder
       File.dirname @xcodeproj_path
     end
 
+    def xcodeproj_name
+      File.basename(@xcodeproj_path, '.*')
+    end
+
     def rename_files
+      project = xcodeproj_name
 
       # shared schemes have project specific names
-      scheme_path = project_folder + "/PROJECT.xcodeproj/xcshareddata/xcschemes/"
-      File.rename(scheme_path + "PROJECT.xcscheme", scheme_path +  @configurator.pod_name + "-Example.xcscheme")
+      scheme_path = project_folder + "/#{project}.xcodeproj/xcshareddata/xcschemes/"
+
+      File.rename(scheme_path + "#{project}.xcscheme", scheme_path +  templated_string(project) + ".xcscheme")
 
       # rename xcproject
-      File.rename(project_folder + "/PROJECT.xcodeproj", project_folder + "/" +  @configurator.pod_name + ".xcodeproj")
+      File.rename(project_folder + "/#{project}.xcodeproj", project_folder + "/" +  templated_string(project) + ".xcodeproj")
 
-      unless @remove_demo_target
-        # change app file prefixes
-        ["CPDAppDelegate.h", "CPDAppDelegate.m", "CPDViewController.h", "CPDViewController.m"].each do |file|
-          before = project_folder + "/PROJECT/" + file
-          after = project_folder + "/PROJECT/" + file.gsub("CPD", prefix)
-          File.rename before, after
-        end
-
+      unless @remove_example_project
         # rename project related files
-        ["PROJECT-Info.plist", "PROJECT-Prefix.pch"].each do |file|
-          before = project_folder + "/PROJECT/" + file
-          after = project_folder + "/PROJECT/" + file.gsub("PROJECT", @configurator.pod_name)
+        ["#{project}-Info.plist", "#{project}-Prefix.pch"].each do |file|
+          before = project_folder + "/#{project}/" + file
+          after = project_folder + "/#{project}/" + templated_string(project)
           File.rename before, after
         end
       end
@@ -105,9 +78,16 @@ module Pod
     end
 
     def rename_project_folder
-      if Dir.exist? project_folder + "/PROJECT"
-        File.rename(project_folder + "/PROJECT", project_folder + "/" + @configurator.pod_name)
+      if Dir.exist? project_folder + "/#{xcodeproj_name}"
+        File.rename(project_folder + "/#{xcodeproj_name}", project_folder + "/" + templated_string(xcodeproj_name))
       end
+    end
+
+    def templated_string(text)
+      for find, replace in @string_replacements
+          text = text.gsub(find, replace)
+      end
+      text
     end
 
     def replace_internal_project_settings
@@ -115,9 +95,7 @@ module Pod
         next if Dir.exists? name
         text = File.read(name)
 
-        for find, replace in @string_replacements
-            text = text.gsub(find, replace)
-        end
+        text = templated_string text
 
         File.open(name, "w") { |file| file.puts text }
       end
