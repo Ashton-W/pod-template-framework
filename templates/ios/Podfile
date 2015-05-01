@@ -1,0 +1,11 @@
+source 'https://github.com/CocoaPods/Specs.git'
+
+target '${POD_NAME}', :exclusive => true do
+  podspec
+end
+
+target 'Tests', :exclusive => true do
+  podspec
+
+  ${INCLUDED_PODS}
+end
